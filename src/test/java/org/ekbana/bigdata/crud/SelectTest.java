@@ -4,57 +4,22 @@ import org.ekbana.bigdata.Sanitizer.CheckSql;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class SelectTest {
 
-    CheckSql checkSql=null;
-    Select select=null;
-    Insert insert=null;
+    CheckSql checkSql = null;
+    Select select = null;
+    Insert insert = null;
 
     @Test
-    public void testSelect(){
-        String query="SELECT * FROM class FULL OUTER JOIN class_info ON (class.id = class_info.id)";
-        checkSql=new CheckSql(query,"select");
-
-        boolean check=checkSql.isValidSql();
-
-        assertEquals(check,true);
+    public void testSelect() throws IOException {
+        String inject="'b contains 'drop table''";
+        String query = "select * table_alias where a='apple;select * from emp where 1=10'";
+        System.out.println(query);
+        System.out.println(Arrays.toString(query.split(" ")));
+        assertEquals(false, new CheckSql(query, "select").isValidSql());
     }
-
-    @Test
-    public void testSelectQueryWithJoins(){
-        String query="SELECT * FROM class FULL OUTER JOIN class_info ON (class.id = class_info.id)";
-        try {
-            select =new Select(query,"postgres");
-
-            if (select.isValid){
-                System.out.println(select.getFinalQuery());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Test
-    public void insertTest(){
-        String query="INSERT INTO postgres VALUES(1,' ')";
-        try {
-            insert=new Insert(query,"postgres");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        boolean isValid=insert.isValid;
-
-        assertEquals(isValid,true);
-
-    }
-
-    @Test
-    public void testSqlTableNames(){
-        String sql="select * from table1";
-    }
-
 }

@@ -9,10 +9,11 @@ import java.util.Objects;
 
 public class CheckSql {
 
+    private static final String[] CASSANDRA_COMMENTS={"/*","*/"};
     private static final String TOKEN_ORACLE_HINT_START = "/*+";
     private static final String TOKEN_ORACLE_HINT_END = "*/";
     private static final String[] ILLEGAL_CHARACTERS = {"--", "#", ";", TOKEN_ORACLE_HINT_START, TOKEN_ORACLE_HINT_END};
-    private static final String[] STOP_WORDS = {"drop table", "create table", "drop database", "create database"};
+    private static final String[] STOP_WORDS = {"drop table", "create table", "drop database", "create database","truncate"};
 
     private static final Logger logger = Logger.getLogger(CheckSql.class);
 
@@ -33,7 +34,11 @@ public class CheckSql {
 
     private Boolean containsStopWords() {
         logger.info("checking if query contains any stop words");
-        return Arrays.stream(STOP_WORDS).parallel().anyMatch(getSanitizedQuery()::contains);
+        if (Arrays.stream(STOP_WORDS).parallel().anyMatch(getSanitizedQuery()::contains)){
+            System.out.println("[CheckSqk] contains stop words");
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -46,7 +51,23 @@ public class CheckSql {
         logger.info("checking for any illegal string");
         Boolean hello =true;
         try{
-            hello = (fishyWhere() || containsIllegalCharacter() || hasConsecutiveQuotes() ||  containsStopWords() || firstWordMisMatched());
+            switch (this.endpoint){
+                case "select":
+                    hello = (fishyWhere() ||  containsIllegalCharacter() || containsStopWords() || hasConsecutiveQuotes()  || firstWordMisMatched());
+                    break;
+                case "insert":
+                    hello=(firstWordMisMatched() || containsIllegalCharacter() || containsStopWords());
+                    break;
+                case "update":
+                    hello=(firstWordMisMatched() || hasConsecutiveQuotes() || fishyWhere() || containsStopWords() || containsIllegalCharacter());
+                    break;
+                case "delete":
+                    hello=(firstWordMisMatched() || containsStopWords() || containsIllegalCharacter() || fishyWhere() || hasConsecutiveQuotes());
+                    break;
+                default:
+                    break;
+            }
+
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -110,27 +131,18 @@ public class CheckSql {
                 }
             }
         }
+
+        System.out.println(Arrays.toString(new ArrayList[]{fc}));
+        String[] operators={"!=",">=","<=","==",">","<","="};
         for (String aFc : fc) {
-            if (!keyIsString(aFc, ">=")) {
-                malformedKeyValue = true;
-                break;
-            } else if (!keyIsString(aFc, "<=")) {
-                malformedKeyValue = true;
-                break;
-            } else if (keyEqualsValue(aFc, "!=")) {
-                malformedKeyValue = true;
-                break;
-            } else if (!keyIsString(aFc, ">")) {
-                malformedKeyValue = true;
-                break;
-            } else if (!keyIsString(aFc, "<")) {
-                malformedKeyValue = true;
-                break;
-            } else if (keyEqualsValue(aFc, "=")) {
-                malformedKeyValue = true;
-                break;
+            for(String operator: operators){
+                if (!keyIsString(aFc,operator)){
+                    System.out.println("[CheckSql]"+ aFc);
+                    return true;
+                }
             }
         }
+
         return malformedKeyValue;
     }
 
@@ -151,6 +163,7 @@ public class CheckSql {
                 String value = trimQuotes(kve[1]);
                 if (Objects.deepEquals(key, value)) {
                     keyEqualsValue = true;
+                    System.out.println("[CheckSql] "+pair);
                 }
             }
         }
@@ -166,14 +179,18 @@ public class CheckSql {
      */
 
     private Boolean keyIsString(String pair, String operator) {
+
         Boolean keyIsString = true;
         if (pair.contains(operator)) {
             String[] kve = pair.split(operator);
             if (kve.length > 0) {
                 String key = trimQuotes(kve[0]);
-                if (isInt(key) || isFloat(key)) keyIsString = false;
+                if (isInt(key) || isFloat(key)){
+                    System.out.println("[CheckSql] keyIsString : "+ pair);
+                    keyIsString = false;}
             }
         }
+        //System.out.println(pair+" : "+operator+" : "+keyIsString);
         return keyIsString;
     }
 
@@ -218,7 +235,23 @@ public class CheckSql {
 
     private Boolean containsIllegalCharacter() {
         logger.info("checking for any illegal character");
-        return Arrays.stream(ILLEGAL_CHARACTERS).parallel().anyMatch(getSanitizedQuery()::contains);
+        if(endpoint.equals("select")){
+            if (Arrays.stream(ILLEGAL_CHARACTERS).parallel().anyMatch(getSanitizedQuery()::contains) ||
+                    Arrays.stream(CASSANDRA_COMMENTS).parallel().anyMatch(getSanitizedQuery()::contains)){
+                System.out.println("[CheckSql] contains illegal characters");
+                return true;
+            }else{
+                return false;
+            }
+        }
+
+        if(Arrays.stream(ILLEGAL_CHARACTERS).parallel().anyMatch(getSanitizedQuery()::contains)){
+            System.out.println("[CheckSql] contains illegal characters");
+            return true;
+        }else {
+            return false;
+        }
+
     }
 
     /**

@@ -21,6 +21,10 @@ public class PostgresSQLDBConnection {
                 "/"+gfp.getHSQLDB();
         this.USER = gfp.getHSQLDBUser();
         this.PASS = gfp.getHSQLDBPass();
+
+//        this.DB_URL="jdbc:postgresql://localhost:5432/user_database";
+//        this.USER="postgres";
+//        this.PASS="root";
     }
 
     public Connection get_or_create_connection(){

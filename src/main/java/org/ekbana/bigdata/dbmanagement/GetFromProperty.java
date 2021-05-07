@@ -36,7 +36,7 @@ public class GetFromProperty {
         this.postgresSQLDB_connection=Application.postgresSQLDB_connection;
 
         //InputStream ins = new FileInputStream("/etc/ApplicationLayer/properties/caching_service.properties");
-        InputStream ins=new FileInputStream("/home/roshan/workspace/ekbana/rest_cache_api/src/main/resources/application.properties");
+        InputStream ins=new FileInputStream("/home/roshan/workspace/ekbana/bigdata/rest_cache_api/src/main/resources/application.properties");
         this.prop.load(ins);
     }
 
@@ -48,11 +48,8 @@ public class GetFromProperty {
      */
     public String getAlias(String alias) {
 
-        System.out.println(alias);
         Statement stmt;
         String table_name = "";
-
-        System.out.println("ALIAS NAME "+alias);
 
         try {
 

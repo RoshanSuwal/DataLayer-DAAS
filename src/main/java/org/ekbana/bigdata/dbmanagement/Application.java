@@ -21,7 +21,7 @@ public class Application {
 
 
     Application() throws IOException {
-        hsqldb_connection=new HSQLDBConnection().get_or_create_connection();
+      //  hsqldb_connection=new HSQLDBConnection().get_or_create_connection();
         postgresSQLDB_connection=new PostgresSQLDBConnection().get_or_create_connection();
     }
 

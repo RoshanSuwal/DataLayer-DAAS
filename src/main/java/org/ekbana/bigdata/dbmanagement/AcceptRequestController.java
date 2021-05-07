@@ -7,6 +7,7 @@ import org.ekbana.bigdata.crud.Delete;
 import org.ekbana.bigdata.crud.Insert;
 import org.ekbana.bigdata.crud.Select;
 import org.ekbana.bigdata.crud.Update;
+import org.ekbana.bigdata.security.AES;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,11 +22,11 @@ import java.util.concurrent.*;
 @RestController
 public class AcceptRequestController {
 
+    private static final Logger logger = Logger.getLogger(Application.class);
+    String finalQuery = "";
     private ExecutorService executor = Executors.newFixedThreadPool(10);
     private Future f;
-    String finalQuery = "";
     private MemCacheClient mcc = new MemCacheClient();
-    private static final Logger logger = Logger.getLogger(Application.class);
     private GetFromProperty gfp = new GetFromProperty();
 
     public AcceptRequestController() throws IOException {
@@ -42,15 +43,15 @@ public class AcceptRequestController {
         System.out.println(query.toString());
 
         String queryStatus = "";
-        if(query.toString().isEmpty()){
+        if (query.toString().isEmpty()) {
             return getReturnMsg("query is empty", Status.EMPTY_REQUEST).getBytes();
         }
 
-        Select select =new Select(query.getQuery(),query.getDbms());
+        Select select = new Select(query.getQuery(), query.getDbms());
 
         try {
             if (select.isValid) {
-                queryStatus = sendRequest(select.getFinalQuery(),select.getTable(),1,query);
+                queryStatus = sendRequest(select.getFinalQuery(), select.getKeyspace(), select.getTable(), 1, query);
             } else {
                 logger.error("malformed query detected : " + query.getQuery());
                 queryStatus = getReturnMsg("malformed query", Status.MALFORMED_QUERY);
@@ -82,13 +83,13 @@ public class AcceptRequestController {
 
         String queryStatus = null;
 
-        System.out.println(query.getValues()+":"+query.getDbms());
+        System.out.println(query.getValues() + ":" + query.getDbms());
 
-        Insert insert = new Insert(query.getQuery(),query.getDbms());
+        Insert insert = new Insert(query.getQuery(), query.getDbms());
         System.out.println("insert ");
         try {
             if (insert.isValid) {
-                queryStatus = sendRequest(insert.getFinalQuery(),insert.getTable(),2,query);
+                queryStatus = sendRequest(insert.getFinalQuery(), insert.getKeySpace(), insert.getTable(), 2, query);
             } else {
                 logger.error("malformed query detected : " + query.getQuery());
                 queryStatus = getReturnMsg("malformed query", Status.MALFORMED_QUERY);
@@ -113,11 +114,11 @@ public class AcceptRequestController {
     @PostMapping(path = "/update")
     public String acceptUpdateRequest(@RequestBody AcceptRequest query) throws InterruptedException, IOException, ExecutionException, TimeoutException, MemcachedException, NoSuchAlgorithmException {
         String queryStatus = null;
-        Update update = new Update(query.getQuery(),query.getDbms());
+        Update update = new Update(query.getQuery(), query.getDbms());
 
         try {
             if (update.isValid) {
-                queryStatus = sendRequest(update.getFinalQuery(),update.getTable(),3,query);
+                queryStatus = sendRequest(update.getFinalQuery(), update.getKeyspace(), update.getTable(), 3, query);
             } else {
                 logger.error("malformed query detected : " + query.getQuery());
                 queryStatus = getReturnMsg("malformed query", Status.MALFORMED_QUERY);
@@ -141,11 +142,11 @@ public class AcceptRequestController {
     public String acceptDeleteRequest(@RequestBody AcceptRequest query) throws InterruptedException, IOException, ExecutionException, TimeoutException, MemcachedException, NoSuchAlgorithmException {
         String queryStatus = null;
         System.out.println(query.toString());
-        Delete delete = new Delete(query.getQuery(),query.getDbms());
+        Delete delete = new Delete(query.getQuery(), query.getDbms());
         try {
             if (delete.isValid) {
-                System.out.println(delete.isValid+":"+delete.getFinalQuery());
-                queryStatus = sendRequest(delete.getFinalQuery(),delete.getTable(),4,query);
+                System.out.println(delete.isValid + ":" + delete.getFinalQuery());
+                queryStatus = sendRequest(delete.getFinalQuery(), delete.getKeyspace(), delete.getTable(), 4, query);
             } else {
                 logger.error("malformed query detected : " + query.getQuery());
                 queryStatus = getReturnMsg("malformed query", Status.MALFORMED_QUERY);
@@ -160,8 +161,6 @@ public class AcceptRequestController {
     }
 
 
-
-
     /**
      * Sends user requests to server and response back to user.This function uses thread pool of five threads
      * Number of threads is subjected to change
@@ -171,19 +170,19 @@ public class AcceptRequestController {
      * @throws ExecutionException
      * @throws InterruptedException
      */
-    private String sendRequest(String qry, String table,int rt,AcceptRequest query) throws ExecutionException, InterruptedException, IOException {
-        if(table.isEmpty()){
+    private String sendRequest(String qry, String keyspace, String table, int rt, AcceptRequest query) throws ExecutionException, InterruptedException, IOException {
+        if (keyspace.isEmpty()) {
+            throw new NullPointerException("keyspace name is empty");
+        } else if (table.isEmpty()) {
             throw new NullPointerException("table name is empty");
         }
 
-//        Client c = new Client(query.getSession_id(), query.getDbms(), query.getDb(), qry, query.getUsername(), query.getOffset_key(), query.getOffset(),
-//                query.getPassword(),table,query.getValues(),rt);
-//        logger.info("submitting new connection to executor");
-//        f = executor.submit(c);
-//        return f.get().toString();
-//                mcc.add(query.getDbms(), query.getDb(), query.getQuery(), 0, result);
+        Client c=new Client(query.getSession_id(),query.getOffset_key(),rt,qry,keyspace,query.getUsername(),query.getPassword());
+        logger.info("submitting new connection to executor");
+        f = executor.submit(c);
+        return f.get().toString();
 
-        return qry;
+        //mcc.add(query.getDbms(), query.getDb(), query.getQuery(), 0, result);
     }
 
     /**

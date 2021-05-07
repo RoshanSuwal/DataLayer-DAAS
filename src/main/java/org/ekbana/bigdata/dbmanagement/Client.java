@@ -22,22 +22,16 @@ class Client implements Callable {
     private Socket clientSocket;
 
 
-    Client(String session_id, String dbms, String db, String sql, String user, String offset_key, int offset, String pass, String table,
-           String values, int rt) throws IOException {
-        String[] t = table.split(Pattern.quote("."));
+    Client(String session_id, String offset_key, int request_type,String sql,String keyspace, String username,String password) throws IOException {
         this.sqlObj
                 .put("session_id", session_id)
-                .put("dbms", dbms)
-                .put("db", db)
                 .put("query", sql)
-                .put("username", user)
-                .put("password", pass)
-                .put("keyspace", t[0])
-                .put("table", t[1])
-                .put("values", values)
+                .put("username", username)
+                .put("password", password)
+                .put("keyspace", keyspace)
+                //.put("values", values)
                 .put("offset_key", offset_key)
-                .put("offset", offset)
-                .put("request_type", rt)
+                .put("request_type", request_type)
                 .put("token", gfp.getToken());
         this.clientSocket = new Socket(gfp.getSocketClientIP(), Integer.parseInt(gfp.getSocketClientPort()));
     }

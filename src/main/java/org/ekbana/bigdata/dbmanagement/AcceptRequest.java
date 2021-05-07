@@ -20,6 +20,7 @@ public class AcceptRequest {
     private String session_id;
     private int offset;
 
+
     /**
      * Gets db.
      *
