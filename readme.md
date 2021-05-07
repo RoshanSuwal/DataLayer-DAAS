@@ -1,1 +1,1 @@
-<h1>rest-api-caching</h1>
+<h1>rest-api-caching cassandra module</h1>
