@@ -3,7 +3,7 @@ package org.ekbana.bigdata.crud;
 import org.apache.log4j.Logger;
 import org.ekbana.bigdata.Sanitizer.CheckSql;
 import org.ekbana.bigdata.dbmanagement.GetFromProperty;
-import org.ekbana.bigdata.sqlparser.QueryParser;
+import org.ekbana.bigdata.sqlparser.QueryBuilder;
 
 import java.io.IOException;
 
@@ -18,12 +18,15 @@ public class Update extends Query {
     GetFromProperty gfp = new GetFromProperty();
     private static final Logger logger = Logger.getLogger(Select.class);
 
-    public Update(String query, String dbms) throws IOException {
+    QueryBuilder queryBuilder;
+
+    public Update(String query, String dbms,String values) throws IOException {
         this.str = query;
+        queryBuilder=new QueryBuilder(query,values);
         switch (dbms) {
             case "cassandra":
                 this.query_type = "cassandra";
-                isValid = new CheckSql(query, "update").isValidSql();
+                isValid = new CheckSql(query, "update").isValidSql() && queryBuilder.isIsvalid();
                 break;
             default:
                 logger.error("requested for dbms:" + dbms);
@@ -45,9 +48,9 @@ public class Update extends Query {
     @Override
     String extractAndReplaceSqlTable() {
         //pattern UPDATE [KEYSPACE].[TABLE-NAME]
-        String[] tokens=new QueryParser().getTokenizedQuery(this.str);
+        String[] tokens=queryBuilder.getTokenizedQuery();
 
-        if (tokens[0].equals("UPDATE") || tokens.equals("update")){
+        if (tokens[0].equals("UPDATE") || tokens[0].equals("update")){
             for (int i=1;i< tokens.length;i++){
                 if (!tokens[i].isEmpty()){
                     System.out.println("UPDATE: found  table-name : "+tokens[i]);
@@ -82,17 +85,15 @@ public class Update extends Query {
 
 
     private String replaceTableName(String table) {
-        String alias;
-        if (table.contains(".")) {
-            String[] tokens = table.split("\\.");
-            alias = gfp.getAlias(tokens[1]);
-            table = table.replace("." + tokens[1], "." + alias);
-            this.setTable(alias);
-            this.setKeyspace(tokens[0]);
+        String alias = gfp.getAlias(table);
+
+        if (alias.isEmpty()) {
+            return table;
         } else {
-            table = gfp.getAlias(table);
-            this.setTable(table);
+            String[] tokens = alias.split("\\.");
+            this.setTable(tokens[1]);
+            this.setKeyspace(tokens[0]);
+            return alias;
         }
-        return table;
     }
 }

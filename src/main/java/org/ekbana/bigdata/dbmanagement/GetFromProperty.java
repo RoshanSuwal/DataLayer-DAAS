@@ -35,8 +35,7 @@ public class GetFromProperty {
         this.hsqldb_connection = Application.hsqldb_connection;
         this.postgresSQLDB_connection=Application.postgresSQLDB_connection;
 
-        //InputStream ins = new FileInputStream("/etc/ApplicationLayer/properties/caching_service.properties");
-        InputStream ins=new FileInputStream("/home/roshan/workspace/ekbana/bigdata/rest_cache_api/src/main/resources/application.properties");
+        InputStream ins = new FileInputStream("/etc/ApplicationLayer/properties/caching_service.properties");
         this.prop.load(ins);
     }
 
@@ -65,7 +64,7 @@ public class GetFromProperty {
             System.out.println("Error while getting table alias: " + e.getMessage());
             e.printStackTrace();
         }
-        return table_name.toUpperCase();
+        return table_name;
     }
 
     public String getH2Host(){

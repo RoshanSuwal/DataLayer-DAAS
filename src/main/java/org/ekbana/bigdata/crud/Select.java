@@ -3,10 +3,9 @@ package org.ekbana.bigdata.crud;
 import org.apache.log4j.Logger;
 import org.ekbana.bigdata.Sanitizer.CheckSql;
 import org.ekbana.bigdata.dbmanagement.GetFromProperty;
-import org.ekbana.bigdata.sqlparser.QueryParser;
+import org.ekbana.bigdata.sqlparser.QueryBuilder;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 @SuppressWarnings("Duplicates")
@@ -18,16 +17,17 @@ public class Select extends Query {
     private String query_type = "";
     private String table = "";
 
-    private String keyspace="";
+    private String keyspace = "";
     GetFromProperty gfp = new GetFromProperty();
+    QueryBuilder queryBuilder;
 
-
-    public Select(String query, String dbms) throws IOException {
+    public Select(String query, String dbms, String values) throws IOException {
 //        this.str = query.toLowerCase();
         this.str = query;
+        this.queryBuilder = new QueryBuilder(query, values);
         if (dbms.equals("cassandra")) {
             this.query_type = "sql";
-            isValid = new CheckSql(query, "select").isValidSql();
+            isValid = new CheckSql(query, "select").isValidSql() && this.queryBuilder.isIsvalid();
         } else {
             logger.error("requested for dbms:" + dbms);
         }
@@ -42,6 +42,8 @@ public class Select extends Query {
     public String getFinalQuery() {
         String replacedQuery = "";
 
+        System.out.println(isValid);
+
         replacedQuery = extractAndReplaceSqlTable();
         return replacedQuery;
     }
@@ -51,7 +53,7 @@ public class Select extends Query {
 
         //pattern= SELECT [] FROM [KEYSPACE].[TABLE_NAME]
 
-        String[] tokens = new QueryParser().getTokenizedQuery(this.str);
+        String[] tokens = this.queryBuilder.getTokenizedQuery();
 
         System.out.println(Arrays.toString(tokens));
 
@@ -150,21 +152,20 @@ public class Select extends Query {
      * extracts the keyspace and alias splitting with (.)
      * replaces alias with table_name obtained from properties @See GetFromProperty for more
      * sets the table_name and keyspace
+     *
      * @param table String is the table obtained from query
-     * **/
+     **/
 
     private String replaceTableName(String table) {
-        String alias;
-        if (table.contains(".")) {
-            String[] tokens = table.split("\\.");
-            alias = gfp.getAlias(tokens[1]);
-            table = table.replace("." + tokens[1], "." + alias);
-            this.setTable(alias);
-            this.setKeyspace(tokens[0]);
+        String alias = gfp.getAlias(table);
+
+        if (alias.isEmpty()) {
+            return table;
         } else {
-            table = gfp.getAlias(table);
-            this.setTable(table);
+            String[] tokens = alias.split("\\.");
+            this.setTable(tokens[1]);
+            this.setKeyspace(tokens[0]);
+            return alias;
         }
-        return table;
     }
 }

@@ -5,6 +5,7 @@ import org.ekbana.bigdata.constants.Endpoints;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Objects;
 
 public class CheckSql {
@@ -12,7 +13,7 @@ public class CheckSql {
     private static final String[] CASSANDRA_COMMENTS={"/*","*/"};
     private static final String TOKEN_ORACLE_HINT_START = "/*+";
     private static final String TOKEN_ORACLE_HINT_END = "*/";
-    private static final String[] ILLEGAL_CHARACTERS = {"--", "#", ";", TOKEN_ORACLE_HINT_START, TOKEN_ORACLE_HINT_END};
+    private static final String[] ILLEGAL_CHARACTERS = {"--", "#", ";", "'",TOKEN_ORACLE_HINT_START, TOKEN_ORACLE_HINT_END};
     private static final String[] STOP_WORDS = {"drop table", "create table", "drop database", "create database","truncate"};
 
     private static final Logger logger = Logger.getLogger(CheckSql.class);
@@ -185,8 +186,8 @@ public class CheckSql {
             String[] kve = pair.split(operator);
             if (kve.length > 0) {
                 String key = trimQuotes(kve[0]);
-                if (isInt(key) || isFloat(key)){
-                    System.out.println("[CheckSql] keyIsString : "+ pair);
+                if (isInt(key) || isFloat(key) || key.charAt(0)=='$'){
+                    logger.error("[CheckSql] Fishy where detected :"+pair);
                     keyIsString = false;}
             }
         }
@@ -208,6 +209,7 @@ public class CheckSql {
         } catch (NumberFormatException e) {
             return false;
         }
+
     }
 
     /**

@@ -5,11 +5,9 @@ import org.apache.log4j.Logger;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.context.annotation.Bean;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.util.Base64;
 
 @SpringBootApplication
 @EnableCaching
@@ -21,7 +19,6 @@ public class Application {
 
 
     Application() throws IOException {
-      //  hsqldb_connection=new HSQLDBConnection().get_or_create_connection();
         postgresSQLDB_connection=new PostgresSQLDBConnection().get_or_create_connection();
     }
 

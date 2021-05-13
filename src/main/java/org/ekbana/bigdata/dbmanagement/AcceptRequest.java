@@ -72,7 +72,7 @@ public class AcceptRequest {
      * @return Value of dbms.
      */
     public String getDbms() {
-        return dbms;
+        return "cassandra";
     }
 
     /**

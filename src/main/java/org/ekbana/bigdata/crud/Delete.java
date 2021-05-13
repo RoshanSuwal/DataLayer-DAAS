@@ -3,7 +3,7 @@ package org.ekbana.bigdata.crud;
 import org.apache.log4j.Logger;
 import org.ekbana.bigdata.Sanitizer.CheckSql;
 import org.ekbana.bigdata.dbmanagement.GetFromProperty;
-import org.ekbana.bigdata.sqlparser.QueryParser;
+import org.ekbana.bigdata.sqlparser.QueryBuilder;
 
 import java.io.IOException;
 
@@ -17,12 +17,15 @@ public class Delete extends Query {
     GetFromProperty gfp = new GetFromProperty();
     private static final Logger logger = Logger.getLogger(Select.class);
 
+    QueryBuilder queryBuilder;
 
-    public Delete(String query, String dbms) throws IOException {
+
+    public Delete(String query, String dbms,String values) throws IOException {
         this.str = query;
+        this.queryBuilder=new QueryBuilder(query,values);
         switch (dbms) {
             case "cassandra":
-                isValid=new CheckSql(this.str,"delete").isValidSql();
+                isValid=new CheckSql(this.str,"delete").isValidSql() && queryBuilder.isIsvalid();
                 break;
             default:
                 logger.error("requested for dbms:" + dbms);
@@ -53,7 +56,7 @@ public class Delete extends Query {
 //        WHERE PK_column_conditions
 //        [IF EXISTS | IF static_column_conditions]
 
-        String[] tokens=new QueryParser().getTokenizedQuery(this.str);
+        String[] tokens=queryBuilder.getTokenizedQuery();
 
         if (tokens[0].toUpperCase().equals("DELETE")){
             for (int i=1;i<tokens.length;i++){
@@ -79,18 +82,16 @@ public class Delete extends Query {
     }
 
     private String replaceTableName(String table) {
-        String alias;
-        if (table.contains(".")) {
-            String[] tokens = table.split("\\.");
-            alias = gfp.getAlias(tokens[1]);
-            table = table.replace("." + tokens[1], "." + alias);
-            this.setTable(alias);
-            this.setKeyspace(tokens[0]);
+        String alias = gfp.getAlias(table);
+
+        if (alias.isEmpty()) {
+            return table;
         } else {
-            table = gfp.getAlias(table);
-            this.setTable(table);
+            String[] tokens = alias.split("\\.");
+            this.setTable(tokens[1]);
+            this.setKeyspace(tokens[0]);
+            return alias;
         }
-        return table;
     }
 
 

@@ -47,7 +47,7 @@ public class AcceptRequestController {
             return getReturnMsg("query is empty", Status.EMPTY_REQUEST).getBytes();
         }
 
-        Select select = new Select(query.getQuery(), query.getDbms());
+        Select select = new Select(query.getQuery(), query.getDbms(),query.getValues());
 
         try {
             if (select.isValid) {
@@ -85,7 +85,7 @@ public class AcceptRequestController {
 
         System.out.println(query.getValues() + ":" + query.getDbms());
 
-        Insert insert = new Insert(query.getQuery(), query.getDbms());
+        Insert insert = new Insert(query.getQuery(),query.getDbms(),query.getValues());
         System.out.println("insert ");
         try {
             if (insert.isValid) {
@@ -114,7 +114,7 @@ public class AcceptRequestController {
     @PostMapping(path = "/update")
     public String acceptUpdateRequest(@RequestBody AcceptRequest query) throws InterruptedException, IOException, ExecutionException, TimeoutException, MemcachedException, NoSuchAlgorithmException {
         String queryStatus = null;
-        Update update = new Update(query.getQuery(), query.getDbms());
+        Update update = new Update(query.getQuery(), query.getDbms(),query.getValues());
 
         try {
             if (update.isValid) {
@@ -142,7 +142,7 @@ public class AcceptRequestController {
     public String acceptDeleteRequest(@RequestBody AcceptRequest query) throws InterruptedException, IOException, ExecutionException, TimeoutException, MemcachedException, NoSuchAlgorithmException {
         String queryStatus = null;
         System.out.println(query.toString());
-        Delete delete = new Delete(query.getQuery(), query.getDbms());
+        Delete delete = new Delete(query.getQuery(), query.getDbms(),query.getValues());
         try {
             if (delete.isValid) {
                 System.out.println(delete.isValid + ":" + delete.getFinalQuery());
@@ -177,10 +177,12 @@ public class AcceptRequestController {
             throw new NullPointerException("table name is empty");
         }
 
-        Client c=new Client(query.getSession_id(),query.getOffset_key(),rt,qry,keyspace,query.getUsername(),query.getPassword());
+        Client c=new Client(query.getSession_id(),query.getOffset_key(),rt,qry,keyspace,table,query.getValues(),query.getUsername(),query.getPassword());
         logger.info("submitting new connection to executor");
         f = executor.submit(c);
         return f.get().toString();
+
+  //     return qry;
 
         //mcc.add(query.getDbms(), query.getDb(), query.getQuery(), 0, result);
     }

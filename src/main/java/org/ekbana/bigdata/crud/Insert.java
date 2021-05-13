@@ -3,7 +3,10 @@ package org.ekbana.bigdata.crud;
 import org.apache.log4j.Logger;
 import org.ekbana.bigdata.Sanitizer.CheckSql;
 import org.ekbana.bigdata.dbmanagement.GetFromProperty;
-import org.ekbana.bigdata.sqlparser.QueryParser;
+import org.ekbana.bigdata.sqlparser.QueryBuilder;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -15,17 +18,35 @@ public class Insert extends Query {
     private String keySpace ;
     private String str = "";
     GetFromProperty gfp = new GetFromProperty();
-    private static final Logger logger = Logger.getLogger(Select.class);
+    private static final Logger logger = Logger.getLogger(Insert.class);
 
-    public Insert(String query, String dbms) throws IOException {
+    QueryBuilder queryBuilder;
+
+    public Insert(String query,String dbms,String values) throws IOException {
         this.str = query.toLowerCase();
+        queryBuilder=new QueryBuilder(query,"");
         switch (dbms) {
             case "cassandra":
-                isValid = new CheckSql(query, "insert").isValidSql();
+                isValid = new CheckSql(query, "insert").isValidSql() && IsValuesAJsonString(values);
                 break;
             default:
                 logger.error("requested for dbms:" + dbms);
                 break;
+        }
+    }
+
+    private boolean IsValuesAJsonString(String values){
+        try {
+            new JSONObject(values);
+            return true;
+        }catch (JSONException e) {
+            try {
+                new JSONArray(values);
+                return true;
+            } catch (JSONException f) {
+                logger.error(f.getMessage());
+                return false;
+            }
         }
     }
 
@@ -62,7 +83,7 @@ public class Insert extends Query {
 //        VALUES (column_values)[IF NOT EXISTS]
 //        [USING TTL seconds | TIMESTAMP epoch_in_microseconds]
 
-        String[] tokens = new QueryParser().getTokenizedQuery(this.str);
+        String[] tokens = this.queryBuilder.getTokenizedQuery();
         System.out.println(Arrays.toString(tokens));
 
         if (tokens[0].equals("INSERT") || tokens[0].equals("insert")) {
@@ -75,11 +96,11 @@ public class Insert extends Query {
                             if (!tokens[j].isEmpty()) {
                                 if (tokens[j].contains("(")) {
                                     String[] tok = tokens[j].split("\\(");
-                                    System.out.println("table_name found: " + tok[0]);
+                                  //  System.out.println("table_name found: " + tok[0]);
                                     tok[0] = replaceTableName(tok[0]);
                                     tokens[j] = String.join("(", tok);
                                 } else {
-                                    System.out.println("table_name found: " + tokens[j]);
+                                   // System.out.println("table_name found: " + tokens[j]);
                                     tokens[j] = replaceTableName(tokens[j]);
                                 }
                                 break;
@@ -87,7 +108,8 @@ public class Insert extends Query {
                         }
                         break;
                     } else {
-                        System.out.println("INSERT : invalid syntax " + tokens[i]);
+                       // System.out.println("INSERT : invalid syntax " + tokens[i]);
+                        logger.error("[INSERT] invalid syntax : expecting 'into' but found "+tokens[i]);
                         return this.str;
                     }
                 }
@@ -103,17 +125,15 @@ public class Insert extends Query {
     }
 
     private String replaceTableName(String table) {
-        String alias;
-        if (table.contains(".")) {
-            String[] tokens = table.split("\\.");
-            alias = gfp.getAlias(tokens[1]);
-            table = table.replace("." + tokens[1], "." + alias);
-            this.setTable(alias);
-            this.setKeySpace(tokens[0]);
+        String alias = gfp.getAlias(table);
+
+        if (alias.isEmpty()) {
+            return table;
         } else {
-            table = gfp.getAlias(table);
-            this.setTable(table);
+            String[] tokens = alias.split("\\.");
+            this.setTable(tokens[1]);
+            this.setKeySpace(tokens[0]);
+            return alias;
         }
-        return table;
     }
 }

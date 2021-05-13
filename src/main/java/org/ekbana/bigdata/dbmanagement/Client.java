@@ -36,6 +36,21 @@ class Client implements Callable {
         this.clientSocket = new Socket(gfp.getSocketClientIP(), Integer.parseInt(gfp.getSocketClientPort()));
     }
 
+    Client(String session_id, String offset_key, int request_type,String sql,String keyspace,String table,String values, String username,String password) throws IOException {
+        this.sqlObj
+                .put("session_id", session_id)
+                .put("query", sql)
+                .put("username", username)
+                .put("password", password)
+                .put("keyspace", keyspace)
+                .put("table",table)
+                .put("values", values)
+                .put("offset_key", offset_key)
+                .put("request_type", request_type)
+                .put("token", gfp.getToken());
+        this.clientSocket = new Socket(gfp.getSocketClientIP(), Integer.parseInt(gfp.getSocketClientPort()));
+    }
+
     /**
      * Returns query output from socket server.It opens a connection
      * //     * @param sql   SQLOperation/NOSQL query from user
