@@ -182,7 +182,7 @@ public class AcceptRequestController {
         f = executor.submit(c);
         return f.get().toString();
 
-  //     return qry;
+   //    return qry;
 
         //mcc.add(query.getDbms(), query.getDb(), query.getQuery(), 0, result);
     }

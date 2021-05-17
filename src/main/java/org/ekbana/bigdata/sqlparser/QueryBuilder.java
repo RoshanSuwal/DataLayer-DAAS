@@ -114,7 +114,8 @@ public class QueryBuilder {
     private String getJsonData(JSONObject jsonObject, String key) {
         try {
             /**checks if the obtained value is number**/
-            return String.valueOf(jsonObject.getNumber(key));
+            System.out.println("");
+            return "'"+String.valueOf(jsonObject.getNumber(key))+"'";
         } catch (JSONException e) {
 
             try { /** checks if the obtained value is String*/
@@ -134,11 +135,12 @@ public class QueryBuilder {
                         List<Object> list = jsonObject.getJSONArray(key).toList();
                         ArrayList<String> arrayList = new ArrayList<>();
                         for (Object obj : list) {
-                            if (isInt(obj.toString()) || isFloat(obj.toString())) {
-                                arrayList.add(obj.toString());
-                            } else {
-                                arrayList.add("'" + obj.toString().replace("'", "''") + "'");
-                            }
+//                            if (isInt(obj.toString()) || isFloat(obj.toString())) {
+//                                arrayList.add(obj.toString());
+//                            } else {
+//                                arrayList.add("'" + obj.toString().replace("'", "''") + "'");
+//                            }
+                            arrayList.add("'" + obj.toString().replace("'", "''") + "'");
                         }
                         return String.join(",", arrayList);
                     } catch (JSONException i) {

@@ -17,7 +17,8 @@ import java.util.Properties;
 /**
  * GetFromPropery class loads property file and defined methods to provide property to
  * whole system.
- * @author      Saurab Dahal
+ *
+ * @author Saurab Dahal
  */
 public class GetFromProperty {
     Properties prop;
@@ -33,9 +34,10 @@ public class GetFromProperty {
     public GetFromProperty() throws IOException {
         this.prop = new Properties();
         this.hsqldb_connection = Application.hsqldb_connection;
-        this.postgresSQLDB_connection=Application.postgresSQLDB_connection;
+        this.postgresSQLDB_connection = Application.postgresSQLDB_connection;
 
         InputStream ins = new FileInputStream("/etc/ApplicationLayer/properties/caching_service.properties");
+      //  InputStream ins=new FileInputStream("/home/roshan/workspace/ekbana/bigdata/rest_cache_api/src/main/resources/application.properties");
         this.prop.load(ins);
     }
 
@@ -52,34 +54,34 @@ public class GetFromProperty {
 
         try {
 
-            stmt=postgresSQLDB_connection.createStatement();
-            String sql="SELECT name FROM TABLE_ALIAS WHERE alias='"+alias.toUpperCase()+"'";
-            ResultSet rs=stmt.executeQuery(sql);
+            stmt = postgresSQLDB_connection.createStatement();
+            String sql = "SELECT name FROM TABLE_ALIAS WHERE alias='" + alias.toUpperCase() + "'";
+            ResultSet rs = stmt.executeQuery(sql);
 
-            while (rs.next()){
-                table_name=rs.getString("name");
+            while (rs.next()) {
+                table_name = rs.getString("name");
             }
 
         } catch (SQLException e) {
             System.out.println("Error while getting table alias: " + e.getMessage());
             e.printStackTrace();
         }
-        return table_name;
+        return table_name.toUpperCase();
     }
 
-    public String getH2Host(){
+    public String getH2Host() {
         return this.prop.getProperty("hsqldb_host");
     }
 
-    public String getHSQLDB(){
+    public String getHSQLDB() {
         return this.prop.getProperty("hsqldb_db");
     }
 
-    public String getHSQLDBUser(){
+    public String getHSQLDBUser() {
         return this.prop.getProperty("hsqldb_user");
     }
 
-    public String getHSQLDBPass(){
+    public String getHSQLDBPass() {
         return this.prop.getProperty("hsqldb_pass");
     }
 
@@ -125,10 +127,12 @@ public class GetFromProperty {
     /**
      * @return String      value defined for property "'socket_client_port"
      */
-    String getSocketClientPort() {   return this.prop.getProperty("socket_client_port"); }
+    String getSocketClientPort() {
+        return this.prop.getProperty("socket_client_port");
+    }
 
     /**
-     * @return       String      value defined for property "'token"
+     * @return String      value defined for property "'token"
      */
     String getToken() {
         return this.prop.getProperty("token");
