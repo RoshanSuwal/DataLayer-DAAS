@@ -27,10 +27,10 @@ public class QueryBuilder {
     Logger LOGGER = Logger.getLogger(QueryBuilder.class);
 
 
-    public QueryBuilder(String query, String values){
+    public QueryBuilder(String query, String values) {
         this.query = query;
         this.values = values;
-        this.tokens=buildQuery(query);
+        this.tokens = buildQuery(query);
     }
 
     public boolean isIsvalid() {
@@ -41,7 +41,7 @@ public class QueryBuilder {
         this.isvalid = isvalid;
     }
 
-    public String[] getTokenizedQuery(){
+    public String[] getTokenizedQuery() {
         return this.tokens;
     }
 
@@ -50,10 +50,10 @@ public class QueryBuilder {
      * @method buildQuery
      * this method replaces the variables in query with corresponding json values
      * return String is final query
-     * **/
+     **/
     private String[] buildQuery(String query) {
         LOGGER.info("[QueryBuilder] initialization");
-        String[] tokens=tokenization(query);
+        String[] tokens = tokenization(query);
         if (isvalid) {
             try {
                 JSONObject jsonObject = new JSONObject(this.values);
@@ -105,17 +105,16 @@ public class QueryBuilder {
     }
 
     /**
-     * @method getJsonDate
      * @param jsonObject
-     * @param key is String whose value is to be found in jsonObject
-     * return String
-     *
-     * ***/
+     * @param key        is String whose value is to be found in jsonObject
+     *                   return String
+     * @method getJsonDate
+     ***/
     private String getJsonData(JSONObject jsonObject, String key) {
         try {
             /**checks if the obtained value is number**/
             System.out.println("");
-            return "'"+String.valueOf(jsonObject.getNumber(key))+"'";
+            return "'" + String.valueOf(jsonObject.getNumber(key)) + "'";
         } catch (JSONException e) {
 
             try { /** checks if the obtained value is String*/
@@ -154,12 +153,63 @@ public class QueryBuilder {
 
     }
 
+
+    public String getJson(JSONObject jsonObject, String key) {
+        try {
+            JSONObject json = jsonObject.getJSONObject(key);
+            if (json.keySet().contains("type")) {
+                System.out.println(json.getString("type"));
+                switch (json.getString("type")) {
+                    case "number":
+                        //for number
+                        return String.valueOf(json.getNumber("value"));
+                    case "json":
+                        //for json object
+                        return json.getJSONObject("value").toString();
+
+                    case "list/number":
+                        List<Object> list = jsonObject.getJSONArray("value").toList();
+                        System.out.println(Arrays.toString(new List[]{list}));
+                        ArrayList<String> arrayList = new ArrayList<>();
+                        for (Object obj : list) {
+                            arrayList.add(obj.toString());
+                        }
+                        return String.join(",", arrayList);
+
+                    case "list/string":
+                    case "list":
+                        List<Object> list1 = jsonObject.getJSONArray("value").toList();
+                        ArrayList<String> arrayList1 = new ArrayList<>();
+                        for (Object obj : list1) {
+                            arrayList1.add("'" + obj.toString().replace("'", "''" + "'"));
+                        }
+                        return String.join(",", arrayList1);
+
+                    default:
+                        return "'" + json.getString("value").replace("'", "''") + "'";
+                }
+            } else if (jsonObject.keySet().contains("value")) {
+                return "'" + json.getString("value").replace("'", "''") + "'";
+            }else {
+                return "'" + json.toString()+ "'";
+            }
+        } catch (JSONException e) {
+            try {
+                return "'" + jsonObject.getString(key).replace("'", "''") + "'";
+            }catch (JSONException f){
+                System.out.println(f.getMessage());
+                LOGGER.error(f.getMessage());
+                return "";
+            }
+        }
+    }
+
     /**
-     * @method tokenization
      * @param query String is the query to be tokenized
-     * this methods tokenizes the query and removes the unnecessary spaces obtained while tokenizing the query using regex space
-     * returns String[]
-     * ***/
+     *              this methods tokenizes the query and removes the unnecessary spaces obtained while tokenizing the query using regex space
+     *              returns String[]
+     * @method tokenization
+     ***/
 
     private String[] tokenization(String query) {
         query = query.replace(",", " , ")
@@ -199,7 +249,7 @@ public class QueryBuilder {
             }
         }
 
-        tokens= new String[normalizedToken.size()];
+        tokens = new String[normalizedToken.size()];
 
         for (int i = 0; i < normalizedToken.size(); i++) {
             tokens[i] = normalizedToken.get(i);

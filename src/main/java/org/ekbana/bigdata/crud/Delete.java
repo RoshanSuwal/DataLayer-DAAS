@@ -15,17 +15,18 @@ public class Delete extends Query {
     private String table="";
     private String keyspace="";
     GetFromProperty gfp = new GetFromProperty();
-    private static final Logger logger = Logger.getLogger(Select.class);
+    private static final Logger logger = Logger.getLogger(Delete.class);
 
     QueryBuilder queryBuilder;
 
 
     public Delete(String query, String dbms,String values) throws IOException {
         this.str = query;
-        this.queryBuilder=new QueryBuilder(query,values);
+        //this.queryBuilder=new QueryBuilder(query,values);
+        logger.info("[DELETE] operation");
         switch (dbms) {
             case "cassandra":
-                isValid=new CheckSql(this.str,"delete").isValidSql() && queryBuilder.isIsvalid();
+                isValid=new CheckSql(this.str,"delete").isValidSql(); //&& queryBuilder.isIsvalid();
                 break;
             default:
                 logger.error("requested for dbms:" + dbms);
@@ -42,9 +43,7 @@ public class Delete extends Query {
         String replacedQuery = "";
 
         replacedQuery=extractAndReplaceSqlTable();
-
-        logger.info("replaced query is " + replacedQuery);
-        System.out.println("replaced = " + replacedQuery);
+        logger.info("[replaced query] "+replacedQuery);
         return replacedQuery;
     }
 
@@ -56,7 +55,7 @@ public class Delete extends Query {
 //        WHERE PK_column_conditions
 //        [IF EXISTS | IF static_column_conditions]
 
-        String[] tokens=queryBuilder.getTokenizedQuery();
+        String[] tokens=this.str.split(" ");//queryBuilder.getTokenizedQuery();
 
         if (tokens[0].toUpperCase().equals("DELETE")){
             for (int i=1;i<tokens.length;i++){

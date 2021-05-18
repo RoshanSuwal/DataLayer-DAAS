@@ -7,9 +7,7 @@ import org.ekbana.bigdata.crud.Delete;
 import org.ekbana.bigdata.crud.Insert;
 import org.ekbana.bigdata.crud.Select;
 import org.ekbana.bigdata.crud.Update;
-import org.ekbana.bigdata.security.AES;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,14 +38,12 @@ public class AcceptRequestController {
      */
     @PostMapping("/select")
     public byte[] acceptSelectRequest(@RequestBody AcceptRequest query) throws IOException {
-        System.out.println(query.toString());
 
         String queryStatus = "";
         if (query.toString().isEmpty()) {
             return getReturnMsg("query is empty", Status.EMPTY_REQUEST).getBytes();
         }
-
-        Select select = new Select(query.getQuery(), query.getDbms(),query.getValues());
+        Select select = new Select(query.getQuery(), query.getDbms(), query.getValues());
 
         try {
             if (select.isValid) {
@@ -57,7 +53,7 @@ public class AcceptRequestController {
                 queryStatus = getReturnMsg("malformed query", Status.MALFORMED_QUERY);
             }
         } catch (NullPointerException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
             queryStatus = getReturnMsg("Nullpointer exception", Status.NULLPOINTER);
         } catch (ConnectException e) {
             queryStatus = getReturnMsg("Couldnot connect to socket layer", Status.CONNECTION_REFUSED);
@@ -79,14 +75,14 @@ public class AcceptRequestController {
     @PostMapping(path = "/insert")
     public String acceptInsertRequest(@RequestBody AcceptRequest query) throws InterruptedException, IOException, ExecutionException, TimeoutException, MemcachedException, NoSuchAlgorithmException {
 
-        System.out.println(query.toString());
-
         String queryStatus = null;
 
-        System.out.println(query.getValues() + ":" + query.getDbms());
+        if (query.toString().isEmpty()) {
+            return getReturnMsg("query is empty", Status.EMPTY_REQUEST);
+        }
 
-        Insert insert = new Insert(query.getQuery(),query.getDbms(),query.getValues());
-        System.out.println("insert ");
+        Insert insert = new Insert(query.getQuery(), query.getDbms(), query.getValues());
+
         try {
             if (insert.isValid) {
                 queryStatus = sendRequest(insert.getFinalQuery(), insert.getKeySpace(), insert.getTable(), 2, query);
@@ -96,10 +92,9 @@ public class AcceptRequestController {
             }
         } catch (NullPointerException e) {
             queryStatus = getReturnMsg("malformed query", Status.MALFORMED_QUERY);
-            System.out.println(e.getLocalizedMessage());
+            logger.error(e.getMessage());
         } catch (Exception e) {
             queryStatus = getReturnMsg("malformed query", Status.MALFORMED_QUERY);
-            System.out.println(e.getLocalizedMessage());
             logger.error(e.getLocalizedMessage());
         }
         return queryStatus;
@@ -114,7 +109,10 @@ public class AcceptRequestController {
     @PostMapping(path = "/update")
     public String acceptUpdateRequest(@RequestBody AcceptRequest query) throws InterruptedException, IOException, ExecutionException, TimeoutException, MemcachedException, NoSuchAlgorithmException {
         String queryStatus = null;
-        Update update = new Update(query.getQuery(), query.getDbms(),query.getValues());
+        if (query.toString().isEmpty()) {
+            return getReturnMsg("query is empty", Status.EMPTY_REQUEST);
+        }
+        Update update = new Update(query.getQuery(), query.getDbms(), query.getValues());
 
         try {
             if (update.isValid) {
@@ -125,6 +123,7 @@ public class AcceptRequestController {
             }
         } catch (NullPointerException e) {
             queryStatus = getReturnMsg("malformed query", Status.MALFORMED_QUERY);
+            logger.error(e.getMessage());
         } catch (Exception e) {
             queryStatus = getReturnMsg("malformed query", Status.MALFORMED_QUERY);
             logger.error(e.getLocalizedMessage());
@@ -138,14 +137,16 @@ public class AcceptRequestController {
      * @param query String SQLOperation/NOSQL for querying database
      * @return output of query string
      */
-    @PostMapping(path = "/delete")
+    @PostMapping(path = "/delete/rm")
     public String acceptDeleteRequest(@RequestBody AcceptRequest query) throws InterruptedException, IOException, ExecutionException, TimeoutException, MemcachedException, NoSuchAlgorithmException {
         String queryStatus = null;
-        System.out.println(query.toString());
-        Delete delete = new Delete(query.getQuery(), query.getDbms(),query.getValues());
+        if (query.toString().isEmpty()) {
+            return getReturnMsg("query is empty", Status.EMPTY_REQUEST);
+        }
+
+        Delete delete = new Delete(query.getQuery(), query.getDbms(), query.getValues());
         try {
             if (delete.isValid) {
-                System.out.println(delete.isValid + ":" + delete.getFinalQuery());
                 queryStatus = sendRequest(delete.getFinalQuery(), delete.getKeyspace(), delete.getTable(), 4, query);
             } else {
                 logger.error("malformed query detected : " + query.getQuery());
@@ -153,6 +154,7 @@ public class AcceptRequestController {
             }
         } catch (NullPointerException e) {
             queryStatus = getReturnMsg("malformed query", Status.MALFORMED_QUERY);
+            logger.error(e.getMessage());
         } catch (Exception e) {
             queryStatus = getReturnMsg("malformed query", Status.MALFORMED_QUERY);
             logger.error(e.getLocalizedMessage());
@@ -177,12 +179,12 @@ public class AcceptRequestController {
             throw new NullPointerException("table name is empty");
         }
 
-        Client c=new Client(query.getSession_id(),query.getOffset_key(),rt,qry,keyspace,table,query.getValues(),query.getUsername(),query.getPassword());
-        logger.info("submitting new connection to executor");
-        f = executor.submit(c);
-        return f.get().toString();
+//        Client c=new Client(query.getSession_id(),query.getOffset_key(),rt,qry,keyspace,table,query.getValues(),query.getUsername(),query.getPassword());
+//        logger.info("submitting new connection to executor");
+//        f = executor.submit(c);
+//        return f.get().toString();
 
-   //    return qry;
+        return qry;
 
         //mcc.add(query.getDbms(), query.getDb(), query.getQuery(), 0, result);
     }

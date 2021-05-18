@@ -16,17 +16,18 @@ public class Update extends Query {
     public String keyspace;
     private String query_type = "";
     GetFromProperty gfp = new GetFromProperty();
-    private static final Logger logger = Logger.getLogger(Select.class);
+    private static final Logger logger = Logger.getLogger(Update.class);
 
     QueryBuilder queryBuilder;
 
     public Update(String query, String dbms,String values) throws IOException {
         this.str = query;
-        queryBuilder=new QueryBuilder(query,values);
+       // queryBuilder=new QueryBuilder(query,values);
+        logger.info("[UPDATE] operation");
         switch (dbms) {
             case "cassandra":
                 this.query_type = "cassandra";
-                isValid = new CheckSql(query, "update").isValidSql() && queryBuilder.isIsvalid();
+                isValid = new CheckSql(query, "update").isValidSql() ;//&& queryBuilder.isIsvalid();
                 break;
             default:
                 logger.error("requested for dbms:" + dbms);
@@ -42,18 +43,19 @@ public class Update extends Query {
     public String getFinalQuery() {
         String replacedQuery = "";
         replacedQuery=extractAndReplaceSqlTable();
+        logger.info("[replaced query] "+replacedQuery);
         return replacedQuery;
     }
 
     @Override
     String extractAndReplaceSqlTable() {
         //pattern UPDATE [KEYSPACE].[TABLE-NAME]
-        String[] tokens=queryBuilder.getTokenizedQuery();
+        String[] tokens=this.str.split(" ");//queryBuilder.getTokenizedQuery();
 
         if (tokens[0].equals("UPDATE") || tokens[0].equals("update")){
             for (int i=1;i< tokens.length;i++){
                 if (!tokens[i].isEmpty()){
-                    System.out.println("UPDATE: found  table-name : "+tokens[i]);
+                   // System.out.println("UPDATE: found  table-name : "+tokens[i]);
                     tokens[i]=replaceTableName(tokens[i]);
                     break;
                 }

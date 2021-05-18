@@ -22,12 +22,12 @@ public class Select extends Query {
     QueryBuilder queryBuilder;
 
     public Select(String query, String dbms, String values) throws IOException {
-//        this.str = query.toLowerCase();
         this.str = query;
-        this.queryBuilder = new QueryBuilder(query, values);
+        logger.info("[SELECT] operation");
+       // this.queryBuilder = new QueryBuilder(query, values);
         if (dbms.equals("cassandra")) {
             this.query_type = "sql";
-            isValid = new CheckSql(query, "select").isValidSql() && this.queryBuilder.isIsvalid();
+            isValid = new CheckSql(query, "select").isValidSql();// && this.queryBuilder.isIsvalid();
         } else {
             logger.error("requested for dbms:" + dbms);
         }
@@ -42,9 +42,10 @@ public class Select extends Query {
     public String getFinalQuery() {
         String replacedQuery = "";
 
-        System.out.println(isValid);
+        //System.out.println(isValid);
 
         replacedQuery = extractAndReplaceSqlTable();
+        logger.info("[replaced query] "+replacedQuery);
         return replacedQuery;
     }
 
@@ -53,20 +54,22 @@ public class Select extends Query {
 
         //pattern= SELECT [] FROM [KEYSPACE].[TABLE_NAME]
 
-        String[] tokens = this.queryBuilder.getTokenizedQuery();
+        String[] tokens = this.str.split(" ");//this.queryBuilder.getTokenizedQuery();
 
-        System.out.println(Arrays.toString(tokens));
+        //System.out.println(Arrays.toString(tokens));
 
-        if (tokens[0].equals("SELECT") || tokens[0].equals("select")) {
-            for (int i = 0; i < tokens.length; i++) {
-                if (tokens[i].equals("FROM") || tokens[i].equals("from")) {
-                    for (int j = i + 1; j < tokens.length; j++) {
-                        if (!tokens[j].isEmpty()) {
-                            tokens[j] = replaceTableName(tokens[j]);
+        for(int h=0;h<tokens.length;h++) {
+            if (tokens[h].equals("SELECT") || tokens[h].equals("select")) {
+                for (int i = h+1; i < tokens.length; i++) {
+                    if (tokens[i].equals("FROM") || tokens[i].equals("from")) {
+                        for (int j = i + 1; j < tokens.length; j++) {
+                            if (!tokens[j].isEmpty()) {
+                                tokens[j] = replaceTableName(tokens[j]);
+                            }
+                            break;
                         }
                         break;
                     }
-                    break;
                 }
             }
         }

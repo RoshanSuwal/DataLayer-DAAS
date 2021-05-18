@@ -1,6 +1,8 @@
 package org.ekbana.bigdata.dbmanagement;
 
 import org.apache.log4j.Logger;
+import org.ekbana.bigdata.sqlparser.QueryBuilder;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.util.StopWatch;
 

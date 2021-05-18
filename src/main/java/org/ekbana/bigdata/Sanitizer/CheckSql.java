@@ -5,7 +5,6 @@ import org.ekbana.bigdata.constants.Endpoints;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Locale;
 import java.util.Objects;
 
 public class CheckSql {
@@ -13,7 +12,7 @@ public class CheckSql {
     private static final String[] CASSANDRA_COMMENTS={"/*","*/"};
     private static final String TOKEN_ORACLE_HINT_START = "/*+";
     private static final String TOKEN_ORACLE_HINT_END = "*/";
-    private static final String[] ILLEGAL_CHARACTERS = {"--", "#", ";", "'",TOKEN_ORACLE_HINT_START, TOKEN_ORACLE_HINT_END};
+    private static final String[] ILLEGAL_CHARACTERS = {"--", "#", ";",TOKEN_ORACLE_HINT_START, TOKEN_ORACLE_HINT_END};
     private static final String[] STOP_WORDS = {"drop table", "create table", "drop database", "create database","truncate"};
 
     private static final Logger logger = Logger.getLogger(CheckSql.class);
@@ -54,10 +53,10 @@ public class CheckSql {
         try{
             switch (this.endpoint){
                 case "select":
-                    hello = (fishyWhere() ||  containsIllegalCharacter() || containsStopWords() || hasConsecutiveQuotes()  || firstWordMisMatched());
+                    hello = (firstWordMisMatched()|| fishyWhere() ||  containsIllegalCharacter() || containsStopWords() || hasConsecutiveQuotes());
                     break;
                 case "insert":
-                    hello=(firstWordMisMatched() || containsIllegalCharacter() || containsStopWords());
+                    hello=(firstWordMisMatched() || containsIllegalCharacter() || containsStopWords() || hasConsecutiveQuotes());
                     break;
                 case "update":
                     hello=(firstWordMisMatched() || hasConsecutiveQuotes() || fishyWhere() || containsStopWords() || containsIllegalCharacter());
@@ -83,6 +82,7 @@ public class CheckSql {
      */
 
     private Boolean firstWordMisMatched() {
+        logger.info("checking for first word mis-matched");
         return !getSanitizedQuery().split(" ")[0].equals(this.endpoint);
     }
 
@@ -133,12 +133,12 @@ public class CheckSql {
             }
         }
 
-        System.out.println(Arrays.toString(new ArrayList[]{fc}));
+       // System.out.println(Arrays.toString(new ArrayList[]{fc}));
         String[] operators={"!=",">=","<=","==",">","<","="};
         for (String aFc : fc) {
             for(String operator: operators){
                 if (!keyIsString(aFc,operator)){
-                    System.out.println("[CheckSql]"+ aFc);
+                    //System.out.println("[CheckSql]"+ aFc);
                     return true;
                 }
             }
@@ -164,7 +164,7 @@ public class CheckSql {
                 String value = trimQuotes(kve[1]);
                 if (Objects.deepEquals(key, value)) {
                     keyEqualsValue = true;
-                    System.out.println("[CheckSql] "+pair);
+                   // System.out.println("[CheckSql] "+pair);
                 }
             }
         }
@@ -240,7 +240,7 @@ public class CheckSql {
         if(endpoint.equals("select")){
             if (Arrays.stream(ILLEGAL_CHARACTERS).parallel().anyMatch(getSanitizedQuery()::contains) ||
                     Arrays.stream(CASSANDRA_COMMENTS).parallel().anyMatch(getSanitizedQuery()::contains)){
-                System.out.println("[CheckSql] contains illegal characters");
+               // System.out.println("[CheckSql] contains illegal characters");
                 return true;
             }else{
                 return false;
@@ -248,7 +248,7 @@ public class CheckSql {
         }
 
         if(Arrays.stream(ILLEGAL_CHARACTERS).parallel().anyMatch(getSanitizedQuery()::contains)){
-            System.out.println("[CheckSql] contains illegal characters");
+            //System.out.println("[CheckSql] contains illegal characters");
             return true;
         }else {
             return false;

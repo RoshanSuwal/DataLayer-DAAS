@@ -24,10 +24,11 @@ public class Insert extends Query {
 
     public Insert(String query,String dbms,String values) throws IOException {
         this.str = query.toLowerCase();
-        queryBuilder=new QueryBuilder(query,"");
+        //queryBuilder=new QueryBuilder(query,"");
+        logger.info("[INSERT] operation");
         switch (dbms) {
             case "cassandra":
-                isValid = new CheckSql(query, "insert").isValidSql() && IsValuesAJsonString(values);
+                isValid = new CheckSql(query, "insert").isValidSql();// && IsValuesAJsonString(values);
                 break;
             default:
                 logger.error("requested for dbms:" + dbms);
@@ -73,7 +74,7 @@ public class Insert extends Query {
     public String getFinalQuery() {
         String replacedQuery = "";
         replacedQuery = extractAndReplaceSqlTable();
-
+        logger.info("[replaced query] "+replacedQuery);
         return replacedQuery;
     }
 
@@ -83,8 +84,8 @@ public class Insert extends Query {
 //        VALUES (column_values)[IF NOT EXISTS]
 //        [USING TTL seconds | TIMESTAMP epoch_in_microseconds]
 
-        String[] tokens = this.queryBuilder.getTokenizedQuery();
-        System.out.println(Arrays.toString(tokens));
+        String[] tokens = this.str.split(" ");//this.queryBuilder.getTokenizedQuery();
+       // System.out.println(Arrays.toString(tokens));
 
         if (tokens[0].equals("INSERT") || tokens[0].equals("insert")) {
             //System.out.println("insert detected");
