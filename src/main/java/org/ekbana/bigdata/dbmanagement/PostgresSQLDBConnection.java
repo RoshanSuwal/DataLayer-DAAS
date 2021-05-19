@@ -44,9 +44,9 @@ public class PostgresSQLDBConnection {
                 System.out.println("Problem with creating connection");
             }
         } catch (SQLException e) {
-            if (Integer.parseInt(e.getSQLState()) == 42501) {
+            if (e.getSQLState().equals("42P01")) {
                 String sql = "CREATE TABLE TABLE_ALIAS " +
-                        "(table_id INTEGER IDENTITY PRIMARY KEY, name VARCHAR(50), alias  VARCHAR(50))";
+                        "(table_id INTEGER PRIMARY KEY, name VARCHAR(50), alias  VARCHAR(50))";
                 try {
                     stmt.executeUpdate(sql);
                     stmt.close();
