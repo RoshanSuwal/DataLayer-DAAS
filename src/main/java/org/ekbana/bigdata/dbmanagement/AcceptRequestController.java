@@ -31,12 +31,6 @@ public class AcceptRequestController {
     public AcceptRequestController() throws IOException {
     }
 
-    @PostMapping("/selects")
-    public String hello() {
-        return "hello world";
-    }
-
-
     /**
      * Returns output from query string.It uses <code>ThreadPool</code> for sending request to socket server.
      *
@@ -212,12 +206,12 @@ public class AcceptRequestController {
             throw new NullPointerException("table name is empty");
         }
 
-//        Client c=new Client(query.getSession_id(),query.getOffset_key(),rt,qry,keyspace,table,query.getValues(),query.getUsername(),query.getPassword());
-//        logger.info("submitting new connection to executor");
-//        f = executor.submit(c);
-//        return f.get().toString();
+        Client c=new Client(query.getSession_id(),query.getOffset_key(),rt,qry,keyspace,table,query.getValues(),query.getUsername(),query.getPassword());
+        logger.info("submitting new connection to executor");
+        f = executor.submit(c);
+        return f.get().toString();
 
-        return qry;
+//        return qry;
 
         //mcc.add(query.getDbms(), query.getDb(), query.getQuery(), 0, result);
     }
