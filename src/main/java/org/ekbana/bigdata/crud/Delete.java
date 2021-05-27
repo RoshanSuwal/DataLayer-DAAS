@@ -6,9 +6,10 @@ import org.ekbana.bigdata.dbmanagement.GetFromProperty;
 import org.ekbana.bigdata.sqlparser.QueryBuilder;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 @SuppressWarnings("Duplicates")
-public class Delete extends Query {
+public class Delete extends Query implements IQuery {
 
     public Boolean isValid;
     private String str = "";
@@ -39,7 +40,7 @@ public class Delete extends Query {
      * @return query string with alias being replaced by table
      */
     @Override
-    public String getFinalQuery() {
+    public String getFinalQuery() throws SQLException {
         String replacedQuery = "";
 
         replacedQuery=extractAndReplaceSqlTable();
@@ -48,7 +49,7 @@ public class Delete extends Query {
     }
 
     @Override
-    String extractAndReplaceSqlTable() {
+    String extractAndReplaceSqlTable() throws SQLException {
 //        DELETE [column_name (term)][, ...]
 //        FROM [keyspace_name.] table_name
 //                [USING TIMESTAMP timestamp_value]
@@ -80,7 +81,7 @@ public class Delete extends Query {
         return null;
     }
 
-    private String replaceTableName(String table) {
+    private String replaceTableName(String table) throws SQLException {
         String alias = gfp.getAlias(table);
 
         if (alias.isEmpty()) {
@@ -98,11 +99,22 @@ public class Delete extends Query {
         return table;
     }
 
+    @Override
+    public boolean isValid() {
+        return isValid;
+    }
+
+    @Override
+    public String getFinalQuerY() throws SQLException {
+        return getFinalQuery();
+    }
+
     public void setTable(String table) {
         this.table = table;
     }
 
-    public String getKeyspace() {
+    @Override
+    public String getKeySpace() {
         return keyspace;
     }
 

@@ -15,11 +15,14 @@ public class Application {
 
     static final Logger logger=Logger.getLogger(Application.class);
     static Connection postgresSQLDB_connection=null;
-    public static Connection hsqldb_connection=null;
 
 
     Application() throws IOException {
-        postgresSQLDB_connection=new PostgresSQLDBConnection().get_or_create_connection();
+        Application.restartConnection();
+    }
+
+    public static void restartConnection() throws IOException {
+       postgresSQLDB_connection=new PostgresSQLDBConnection().get_or_create_connection();
     }
 
 

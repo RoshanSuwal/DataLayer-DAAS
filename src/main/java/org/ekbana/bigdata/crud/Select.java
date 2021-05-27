@@ -6,10 +6,12 @@ import org.ekbana.bigdata.dbmanagement.GetFromProperty;
 import org.ekbana.bigdata.sqlparser.QueryBuilder;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Locale;
 
 @SuppressWarnings("Duplicates")
-public class Select extends Query {
+public class Select extends Query implements IQuery {
 
     public Boolean isValid;
     private static final Logger logger = Logger.getLogger(Select.class);
@@ -24,7 +26,7 @@ public class Select extends Query {
     public Select(String query, String dbms, String values) throws IOException {
         this.str = query;
         logger.info("[SELECT] operation");
-       // this.queryBuilder = new QueryBuilder(query, values);
+        // this.queryBuilder = new QueryBuilder(query, values);
         if (dbms.equals("cassandra")) {
             this.query_type = "sql";
             isValid = new CheckSql(query, "select").isValidSql();// && this.queryBuilder.isIsvalid();
@@ -39,18 +41,23 @@ public class Select extends Query {
      */
 
     @Override
-    public String getFinalQuery() {
+    public String getFinalQuery() throws SQLException {
         String replacedQuery = "";
 
         //System.out.println(isValid);
 
         replacedQuery = extractAndReplaceSqlTable();
-        logger.info("[replaced query] "+replacedQuery);
+        logger.info("[replaced query] " + replacedQuery);
         return replacedQuery;
     }
 
     @Override
-    String extractAndReplaceSqlTable() {
+    public String getFinalQuerY() throws SQLException {
+        return getFinalQuery();
+    }
+
+    @Override
+    public String extractAndReplaceSqlTable() throws SQLException {
 
         //pattern= SELECT [] FROM [KEYSPACE].[TABLE_NAME]
 
@@ -58,9 +65,9 @@ public class Select extends Query {
 
         //System.out.println(Arrays.toString(tokens));
 
-        for(int h=0;h<tokens.length;h++) {
+        for (int h = 0; h < tokens.length; h++) {
             if (tokens[h].equals("SELECT") || tokens[h].equals("select")) {
-                for (int i = h+1; i < tokens.length; i++) {
+                for (int i = h + 1; i < tokens.length; i++) {
                     if (tokens[i].equals("FROM") || tokens[i].equals("from")) {
                         for (int j = i + 1; j < tokens.length; j++) {
                             if (!tokens[j].isEmpty()) {
@@ -74,11 +81,15 @@ public class Select extends Query {
             }
         }
 
-        return String.join(" ", tokens);
+        if (this.str.toLowerCase().contains("allow filtering") ){
+            return String.join(" ",tokens);
+        }else {
+            return String.join(" ", tokens)+" ALLOW FILTERING";
+        }
     }
 
     @Override
-    String checkQueryEnd() {
+    public String checkQueryEnd() {
         return null;
     }
 
@@ -91,7 +102,12 @@ public class Select extends Query {
         return this.table;
     }
 
-    public String getKeyspace() {
+    @Override
+    public boolean isValid() {
+        return isValid;
+    }
+
+    public String getKeySpace() {
         return keyspace;
     }
 
@@ -159,8 +175,9 @@ public class Select extends Query {
      * @param table String is the table obtained from query
      **/
 
-    private String replaceTableName(String table) {
-        String alias = gfp.getAlias(table);
+    private String replaceTableName(String table) throws SQLException {
+        String alias = "";
+        alias = gfp.getAlias(table);
 
         if (alias.isEmpty()) {
             return table;

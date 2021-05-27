@@ -6,9 +6,10 @@ import org.ekbana.bigdata.dbmanagement.GetFromProperty;
 import org.ekbana.bigdata.sqlparser.QueryBuilder;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 @SuppressWarnings("Duplicates")
-public class Update extends Query {
+public class Update extends Query implements IQuery {
 
     public Boolean isValid;
     private String str = "";
@@ -40,7 +41,7 @@ public class Update extends Query {
      * @return query string with alias being replaced by table
      */
     @Override
-    public String getFinalQuery() {
+    public String getFinalQuery() throws SQLException {
         String replacedQuery = "";
         replacedQuery=extractAndReplaceSqlTable();
         logger.info("[replaced query] "+replacedQuery);
@@ -48,7 +49,7 @@ public class Update extends Query {
     }
 
     @Override
-    String extractAndReplaceSqlTable() {
+    String extractAndReplaceSqlTable() throws SQLException {
         //pattern UPDATE [KEYSPACE].[TABLE-NAME]
         String[] tokens=this.str.split(" ");//queryBuilder.getTokenizedQuery();
 
@@ -77,7 +78,18 @@ public class Update extends Query {
         return this.table;
     }
 
-    public String getKeyspace() {
+    @Override
+    public boolean isValid() {
+        return isValid;
+    }
+
+    @Override
+    public String getFinalQuerY() throws SQLException {
+        return getFinalQuery();
+    }
+
+    @Override
+    public String getKeySpace() {
         return keyspace;
     }
 
@@ -86,7 +98,7 @@ public class Update extends Query {
     }
 
 
-    private String replaceTableName(String table) {
+    private String replaceTableName(String table) throws SQLException {
         String alias = gfp.getAlias(table);
 
         if (alias.isEmpty()) {

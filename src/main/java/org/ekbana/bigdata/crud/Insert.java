@@ -9,10 +9,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Arrays;
 
 @SuppressWarnings("Duplicates")
-public class Insert extends Query {
+public class Insert extends Query implements IQuery{
     public Boolean isValid;
     public String table;
     private String keySpace ;
@@ -28,7 +29,7 @@ public class Insert extends Query {
         logger.info("[INSERT] operation");
         switch (dbms) {
             case "cassandra":
-                isValid = new CheckSql(query, "insert").isValidSql();// && IsValuesAJsonString(values);
+                isValid = new CheckSql(query, "insert").isValidSql(); //&& IsValuesAJsonString(values);
                 break;
             default:
                 logger.error("requested for dbms:" + dbms);
@@ -36,7 +37,7 @@ public class Insert extends Query {
         }
     }
 
-    private boolean IsValuesAJsonString(String values){
+    public boolean IsValuesAJsonString(String values){
         try {
             new JSONObject(values);
             return true;
@@ -51,6 +52,7 @@ public class Insert extends Query {
         }
     }
 
+    @Override
     public String getKeySpace() {
         return keySpace;
     }
@@ -67,11 +69,21 @@ public class Insert extends Query {
         return this.table;
     }
 
+    @Override
+    public boolean isValid() {
+        return isValid;
+    }
+
+    @Override
+    public String getFinalQuerY() throws SQLException {
+        return getFinalQuery();
+    }
+
     /**
      * @return query string with alias being replaced by table
      */
     @Override
-    public String getFinalQuery() {
+    public String getFinalQuery() throws SQLException {
         String replacedQuery = "";
         replacedQuery = extractAndReplaceSqlTable();
         logger.info("[replaced query] "+replacedQuery);
@@ -79,7 +91,7 @@ public class Insert extends Query {
     }
 
     @Override
-    String extractAndReplaceSqlTable() {
+    String extractAndReplaceSqlTable() throws SQLException {
         //        INSERT INTO [keyspace_name].[table_name] (column_list)
 //        VALUES (column_values)[IF NOT EXISTS]
 //        [USING TTL seconds | TIMESTAMP epoch_in_microseconds]
@@ -125,7 +137,7 @@ public class Insert extends Query {
         return null;
     }
 
-    private String replaceTableName(String table) {
+    private String replaceTableName(String table) throws SQLException {
         String alias = gfp.getAlias(table);
 
         if (alias.isEmpty()) {

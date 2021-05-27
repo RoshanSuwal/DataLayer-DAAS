@@ -1,6 +1,7 @@
 package org.ekbana.bigdata.crud;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 /**
@@ -15,16 +16,11 @@ import java.util.ArrayList;
 public abstract class Query {
     private String str = "";
 
-    public Query(String query) throws IOException {
-    }
-
-    public Query() throws IOException {
-    }
 
     /**
      * @return query string with alias being replaced by table
      */
-    abstract String getFinalQuery();
+    abstract String getFinalQuery() throws SQLException;
 
 
     /**
@@ -35,7 +31,7 @@ public abstract class Query {
      *
      * @return String      The alias in original string is replaced by table name.
      */
-    abstract String extractAndReplaceSqlTable();
+    abstract String extractAndReplaceSqlTable() throws SQLException;
 
     /**
      * Checks the query ending arguments like

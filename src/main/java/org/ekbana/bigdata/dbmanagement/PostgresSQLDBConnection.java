@@ -17,10 +17,10 @@ public class PostgresSQLDBConnection {
     public PostgresSQLDBConnection() throws IOException {
         gfp = new GetFromProperty();
         this.DB_URL = "jdbc:postgresql://" +
-                gfp.getH2Host() +
-                "/"+gfp.getHSQLDB();
-        this.USER = gfp.getHSQLDBUser();
-        this.PASS = gfp.getHSQLDBPass();
+                gfp.getPostgresHost() +
+                "/"+gfp.getPostgresDB();
+        this.USER = gfp.getPostgresDBUser();
+        this.PASS = gfp.getPostgresDBPass();
 
     }
 
@@ -51,6 +51,7 @@ public class PostgresSQLDBConnection {
                     stmt.executeUpdate(sql);
                     stmt.close();
                 } catch (SQLException e1) {
+                    System.out.println("e1");
                     e1.printStackTrace();
                 }
                 System.out.println("Created table in given database...");
@@ -58,7 +59,7 @@ public class PostgresSQLDBConnection {
                 System.out.println(e.getMessage());
             }
         } catch (ClassNotFoundException e) {
-            System.out.println(e.getMessage());
+            System.out.println("classnotfound "+e.getMessage());
         }
         return conn;
     }
