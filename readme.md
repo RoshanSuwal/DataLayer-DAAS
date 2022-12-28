@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-<h1>rest-api-caching</h1>
+# DataLayer - DAAS Application
 
-=======
-<h1>rest-api-caching cassandra module</h1>
->>>>>>> d3d98d16df0947f4d0e85825293c34c73c70d536
+A DAAS-Data As A Service Application developed to build a user-friendly interface to access data from different sources using simple SQL queries through rest endpoints.
