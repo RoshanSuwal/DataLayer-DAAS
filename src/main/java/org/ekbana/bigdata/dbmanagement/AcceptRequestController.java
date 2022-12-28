@@ -1,7 +1,6 @@
 package org.ekbana.bigdata.dbmanagement;
 
 import net.rubyeye.xmemcached.exception.MemcachedException;
-import netscape.javascript.JSException;
 import org.apache.log4j.Logger;
 import org.ekbana.bigdata.constants.Status;
 import org.ekbana.bigdata.crud.*;
@@ -204,14 +203,15 @@ public class AcceptRequestController {
             throw new NullPointerException("keyspace name is empty");
         } else if (table.isEmpty()) {
             throw new NullPointerException("table name is empty");
-        }
+        }else {
 
         Client c=new Client(query.getSession_id(),query.getOffset_key(),rt,qry,keyspace,table,query.getValues(),query.getUsername(),query.getPassword());
         logger.info("submitting new connection to executor");
         f = executor.submit(c);
         return f.get().toString();
 
-//        return qry;
+//            return qry;
+        }
 
         //mcc.add(query.getDbms(), query.getDb(), query.getQuery(), 0, result);
     }
@@ -243,7 +243,7 @@ public class AcceptRequestController {
         } catch (ConnectException e) {//triggered when failed to connect to Applayer-cassandra server
             logger.error("[TCP SOCKET] " + e.getMessage());
             queryStatus = getReturnMsg(gfp.getApplayerConnectionErrorMsg(), Status.CONNECTION_REFUSED);
-        } catch (NullPointerException e) { //triggered when table name in invalid ie not found in postgres database;
+        } catch (NullPointerException e) { //triggered when table name is invalid ie not found in postgres database;
             logger.error("[DATABASE] " + e.getMessage());
             queryStatus = getReturnMsg(gfp.getInvalidTableNameErrorMsg(), Status.NULL_POINTER);
         } catch (Exception e) {

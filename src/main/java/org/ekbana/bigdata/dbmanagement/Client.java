@@ -24,7 +24,7 @@ class Client implements Callable {
     private Socket clientSocket;
 
 
-    Client(String session_id, String offset_key, int request_type,String sql,String keyspace, String username,String password) throws IOException {
+    Client(String session_id, String offset_key, int request_type, String sql, String keyspace, String username, String password) throws IOException {
         this.sqlObj
                 .put("session_id", session_id)
                 .put("query", sql)
@@ -38,14 +38,14 @@ class Client implements Callable {
         this.clientSocket = new Socket(gfp.getSocketClientIP(), Integer.parseInt(gfp.getSocketClientPort()));
     }
 
-    Client(String session_id, String offset_key, int request_type,String sql,String keyspace,String table,String values, String username,String password) throws IOException {
+    Client(String session_id, String offset_key, int request_type, String sql, String keyspace, String table, String values, String username, String password) throws IOException {
         this.sqlObj
                 .put("session_id", session_id)
                 .put("query", sql)
                 .put("username", username)
                 .put("password", password)
                 .put("keyspace", keyspace)
-                .put("table",table)
+                .put("table", table)
                 .put("values", values)
                 .put("offset_key", offset_key)
                 .put("request_type", request_type)
@@ -66,8 +66,8 @@ class Client implements Callable {
             PrintWriter writer = new PrintWriter(this.clientSocket.getOutputStream(), true);
             writer.println(this.sqlObj.toString());
             writer.flush();
-                BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                s = inFromServer.readLine();
+            BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            s = inFromServer.readLine();
             clientSocket.close();
         } catch (Exception e) {
             logger.error(e.getLocalizedMessage());
@@ -79,7 +79,7 @@ class Client implements Callable {
     public String call() {
         StopWatch st = new StopWatch();
         st.start();
-        String s ="";
+        String s = "";
         s = processmessage();
         return s;
     }

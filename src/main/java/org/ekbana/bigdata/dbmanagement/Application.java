@@ -13,8 +13,8 @@ import java.sql.Connection;
 @EnableCaching
 public class Application {
 
-    static final Logger logger=Logger.getLogger(Application.class);
-    static Connection postgresSQLDB_connection=null;
+    static final Logger logger = Logger.getLogger(Application.class);
+    static Connection postgresSQLDB_connection = null;
 
 
     Application() throws IOException {
@@ -22,15 +22,14 @@ public class Application {
     }
 
     public static void restartConnection() throws IOException {
-       postgresSQLDB_connection=new PostgresSQLDBConnection().get_or_create_connection();
+        postgresSQLDB_connection = new PostgresSQLDBConnection().get_or_create_connection();
     }
-
 
 
     public static void main(String[] args) {
         BasicConfigurator.configure();
         logger.info("application started");
-        SpringApplication.run(Application.class,args);
+        SpringApplication.run(Application.class, args);
 
     }
 }
